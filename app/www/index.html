@@ -19,12 +19,29 @@
                 console.log('Pebble', Pebble);
 
                 var genericHandler = function(name){
-                    return function(err, info){ console.log(name, err, info) };
+                    return function(err, info){
+                        if (name == 'DATA'){
+                            Pebble.sendAckToPebble(info.transaction, function(err, transaction){
+                                if (err) return console.error(err);
+                            });
+                        }
+                    };
                 }
 
                 Pebble.registerReceivedDataHandler(uuid, genericHandler('DATA'));
                 Pebble.registerReceivedAckHandler(uuid, genericHandler('ACK'));
                 Pebble.registerReceivedNackHandler(uuid, genericHandler('NACK'));
+
+                var alphabet = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ').split('');
+                var l = 0;
+
+                function sendLetter(){
+                    var data = [ {type:'string', key:1, value:alphabet[l%26], length:0} ];
+                    Pebble.sendDataToPebble(uuid, data, sendLetter);
+                    l++;
+                }
+                sendLetter();
+                
             });
         </script>
     </body>

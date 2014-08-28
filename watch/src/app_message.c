@@ -1,19 +1,15 @@
 #include <pebble.h>
 
-Window *window;	
+static Window *window;
+static TextLayer *desc_text;
+static TextLayer *alphabet_text;
 	
-// Key values for AppMessage Dictionary
-enum {
-	STATUS_KEY = 0,	
-	MESSAGE_KEY = 1
-};
-
 // Write message to buffer & send
 void send_message(void){
 	DictionaryIterator *iter;
 	
 	app_message_outbox_begin(&iter);
-	dict_write_uint8(iter, STATUS_KEY, 0x1);
+	dict_write_cstring(iter, 0, "A");
 	
 	dict_write_end(iter);
   	app_message_outbox_send();
@@ -23,14 +19,10 @@ void send_message(void){
 static void in_received_handler(DictionaryIterator *received, void *context) {
 	Tuple *tuple;
 	
-	tuple = dict_find(received, STATUS_KEY);
-	if(tuple) {
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "Received Status: %d", (int)tuple->value->uint32); 
-	}
-	
-	tuple = dict_find(received, MESSAGE_KEY);
+	tuple = dict_find(received, 1);
 	if(tuple) {
 		APP_LOG(APP_LOG_LEVEL_DEBUG, "Received Message: %s", tuple->value->cstring);
+		text_layer_set_text(alphabet_text, tuple->value->cstring);
 	}}
 
 // Called when an incoming message from phone-app is dropped
@@ -51,7 +43,18 @@ void init(void) {
 	app_message_register_outbox_failed(out_failed_handler);
 		
 	app_message_open(app_message_inbox_size_maximum(), app_message_outbox_size_maximum());
-	
+
+	desc_text = text_layer_create(GRect(0, 0, 144, 16));
+	text_layer_set_text_alignment(desc_text, GTextAlignmentCenter);
+  	layer_add_child(window_get_root_layer(window), text_layer_get_layer(desc_text));
+  	text_layer_set_text(desc_text, "current letter");
+
+  	alphabet_text = text_layer_create(GRect(0, 18, 144, 55));
+  	text_layer_set_text_alignment(alphabet_text, GTextAlignmentCenter);
+  	text_layer_set_font(alphabet_text, fonts_get_system_font(FONT_KEY_GOTHIC_28));
+  	layer_add_child(window_get_root_layer(window), text_layer_get_layer(alphabet_text));
+  	text_layer_set_text(alphabet_text, "*");
+
 	send_message();
 }
 
