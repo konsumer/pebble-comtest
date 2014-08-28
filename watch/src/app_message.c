@@ -49,11 +49,11 @@ void init(void) {
   	layer_add_child(window_get_root_layer(window), text_layer_get_layer(desc_text));
   	text_layer_set_text(desc_text, "current letter");
 
-  	alphabet_text = text_layer_create(GRect(0, 18, 144, 55));
-  	text_layer_set_text_alignment(alphabet_text, GTextAlignmentCenter);
-  	text_layer_set_font(alphabet_text, fonts_get_system_font(FONT_KEY_GOTHIC_28));
-  	layer_add_child(window_get_root_layer(window), text_layer_get_layer(alphabet_text));
-  	text_layer_set_text(alphabet_text, "*");
+  	alphabet_text = text_layer_create(GRect(0, 18, 144, 50));
+	text_layer_set_text_alignment(alphabet_text, GTextAlignmentCenter);
+	text_layer_set_font(alphabet_text, fonts_get_system_font(FONT_KEY_BITHAM_42_BOLD));
+	layer_add_child(window_get_root_layer(window), text_layer_get_layer(alphabet_text));
+	text_layer_set_text(alphabet_text, "*");
 
 	send_message();
 }
