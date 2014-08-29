@@ -6,42 +6,53 @@
         <meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width, height=device-height, target-densitydpi=device-dpi" />
         <meta name="msapplication-tap-highlight" content="no" />
         <title>Hello World</title>
+        <style>
+            body {
+                text-align:center;
+            }
+            
+            h1 {
+                font-size: 200px;
+                line-height: 200px;
+            }
+        </style>
     </head>
     <body>
         <div class="app">
-            <p>View console for output. You should use Chrome's, it works better than logcat.</p>
+            <p>current letter (watch)</p>
+            <h1 id="letter">*</h1>
+
         </div>
         <script type="text/javascript" src="cordova.js"></script>
         <script type="text/javascript">
             var uuid = '39457783-362f-4343-8846-7fec4fc6268f';
+            var letterDisplay = document.getElementById('letter');
 
             document.addEventListener('deviceready', function(){
-                console.log('Pebble', Pebble);
-
-                var genericHandler = function(name){
-                    return function(err, info){
-                        if (name == 'DATA'){
-                            Pebble.sendAckToPebble(info.transaction, function(err, transaction){
-                                if (err) return console.error(err);
-                            });
-                        }
-                    };
-                }
-
-                Pebble.registerReceivedDataHandler(uuid, genericHandler('DATA'));
-                Pebble.registerReceivedAckHandler(uuid, genericHandler('ACK'));
-                Pebble.registerReceivedNackHandler(uuid, genericHandler('NACK'));
+                // when I receive data, update letter display & send an ACK
+                Pebble.registerReceivedDataHandler(uuid, function(err, info){
+                    console.log('received', info);
+                    if (err) return console.error(err);
+                    letterDisplay.innerHTML = info.data[0].value;
+                    Pebble.sendAckToPebble(info.transaction);
+                });
 
                 var alphabet = ('ABCDEFGHIJKLMNOPQRSTUVWXYZ').split('');
                 var l = 0;
 
-                function sendLetter(){
-                    var data = [ {type:'string', key:1, value:alphabet[l%26], length:0} ];
-                    Pebble.sendDataToPebble(uuid, data, sendLetter);
+                var sendLetter = function(){
+                    var letter = alphabet[l%26];
+                    var data = [ {type:'string', key:0, value:letter, length:0} ];
+                    console.log('sent ' + letter)
+                    Pebble.sendDataToPebble(uuid, data);
                     l++;
                 }
-                sendLetter();
-                
+
+                // on touch, send a new letter
+                letterDisplay.addEventListener("touchstart", sendLetter , false);
+
+                // When I receive an ACK, send a new letter
+                Pebble.registerReceivedAckHandler(uuid, sendLetter);
             });
         </script>
     </body>
